@@ -1,29 +1,26 @@
+
+sudo: required
 language: java
 
-jdk: oraclejdk7
+jdk:
 
-env: DISPLAY=:99.0
 
-install: true
 
-before_install:
- - sudo apt-get update
- - sudo apt-get install gnome-themes-standard
- - sudo apt-get install metacity
- - sudo apt-get install libwebkit-dev
-
-before_script:
- - sh -e /etc/init.d/xvfb start
- - sleep 10 # give xvfb some time to start
- - metacity --sm-disable --replace &
- - sleep 10 # give metacity some time to start
- 
 script:
- - export
- - mvn -B -Dbrowser=webkit clean package
+  - mvn clean cobertura:cobertura -Dtest=code#PageEditorTrackerDefault -DfailIfNoTests=false
 
-after_failure:
- - cat /home/travis/build/satyagraha/gfm_viewer/plugin.tests/target/work/data/.metadata/.log
- - cat /home/travis/build/satyagraha/gfm_viewer/plugin.tests/target/surefire-reports/*
- - cat /home/travis/build/satyagraha/gfm_viewer/plugin.ui.tests/target/work/data/.metadata/.log
- - cat /home/travis/build/satyagraha/gfm_viewer/plugin.ui.tests/target/surefire-reports/*
+before_deploy:
+- tar -zcvf coverage-result.tar.gz /home/travis/build/leusonmario/gfm_viewer/target/site/cobertura
+
+deploy:
+  provider: releases
+  api_key:
+    secure: "A+PT3uiav4LpaHBxgSLKL0gBSUMtvseP36CGTxYrwkhEWEuY3APb3nVWfgrbTkSjpx2vTZLHP5Kh5Ci+XPg7Z/6YgD8ImDEKamWftzcf/pXXW5yHtVJpSl7rDYfk/FPcgH1o6n6SawRlYuCJKXY3Zq/kT9fwCMCapZdnBJAD507xGkaulcg4bZ0E6sz+tZkGwqWPGo8WOzBTTXy2KcfAq8pGxrh9aMS9Rmt+7vBEAqXBn2RUjyyyN3VtC0mx2+LZjX38UNW3MZ4IsIwN4e+TY2mZIIL8/acDD1gvzQFjqrbDom5M6j8Y+SignWvV+TE8OKoWk+MKpxkqsw3uZS/EL6GQUawkTaMvDQGsjLpy3gzm2Kv8DetTFXps6So3velQsbbLd+1MUXnedW6gXet9JadqnmJnkbmLrX+MPLVyT7wEG6OvVQ2AMT+Cw+/YtYPAj85dgZhVUHdT7XDJIc7KrYeaMeEq2MIEkFd25W7GeU9hjkGR7IvkDomq09EsPYpK7fvtsYWc07lwkOXTJV8b1h7eSzBqMmPmsAzRyZ3vfCnLzwSMVls9Ai7u677POUMEWic62RsI9Yd1SM8CVYIAxoDw7zj6+SVUhrMX7fZIxX+bOSQIAI5EgSLHOWuGcQLpxMyMpdXQfUd8RuPJA+U7XPBOPR/FanHPxfuwDneCt3c="
+
+
+  file: coverage-result.tar.gz
+  file_glob: true
+  overwrite: true
+  skip_cleanup: true
+  on:
+    tags: true
